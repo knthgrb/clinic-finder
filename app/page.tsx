@@ -1,20 +1,5 @@
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-    </>
-  );
+export default function RootPage() {
+  redirect("/auth-redirect");
 }
