@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import Loading from "@/app/loading";
 
 export default function AuthRedirectClientComponent() {
   const { user, isLoaded } = useUser();
@@ -19,33 +20,33 @@ export default function AuthRedirectClientComponent() {
     if (!isLoaded || convexUser === undefined) return;
 
     const checkUserAndRedirect = async () => {
+      // If no user, redirect to signin
       if (!user) {
         router.push("/signin");
         return;
       }
 
-      const role = user.unsafeMetadata.role as string | undefined;
+      // Get the user's role
+      const role = user.unsafeMetadata.role as "admin" | "clinic" | "patient";
 
+      // First time user, redirect to onboarding
       if (!role) {
-        // First time user, redirect to onboarding
         router.push("/onboarding");
         return;
       }
 
-      // If user doesn't exist in Convex, create them
+      // If user doesn't exist in Convex, create user record
       if (!convexUser && user.primaryEmailAddress?.emailAddress) {
         try {
-          const newUser = await createUser({
+          await createUser({
             email: user.primaryEmailAddress.emailAddress,
-            role: role as "admin" | "clinic" | "patient",
-            status: role === "clinic" ? "pending" : "approved",
+            role,
+            status: role === "clinic" ? "pending" : "approved", // Make clinic pending by default --to be approved by admin acount
           });
 
-          // Wait a moment for the mutation to be reflected in the database
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
-          // Refresh to get the new user data
-          window.location.reload();
+          // Replace this window.location.reload() which causes hydration errors
+          // with a state-based approach
+          router.refresh(); // Use Next.js router refresh instead
           return;
         } catch (error) {
           console.error("Error creating user:", error);
@@ -53,24 +54,22 @@ export default function AuthRedirectClientComponent() {
         }
       }
 
-      // Handle clinic status redirects
-      if (role === "clinic") {
-        if (!convexUser?.status || convexUser.status === "pending") {
-          router.push("/pending-approval");
-          return;
-        }
-        if (convexUser.status === "rejected") {
-          router.push("/registration-rejected");
-          return;
-        }
-        if (convexUser.status === "approved") {
-          router.push("/clinic-dashboard");
-          return;
-        }
-      }
-
-      // Redirect based on role for non-clinic users
+      // Redirect based on role
       switch (role) {
+        case "clinic":
+          if (convexUser?.status === "pending") {
+            router.push("/pending-approval");
+            return;
+          }
+          if (convexUser?.status === "rejected") {
+            router.push("/registration-rejected");
+            return;
+          }
+          if (convexUser?.status === "approved") {
+            router.push("/clinic-dashboard");
+            return;
+          }
+          break;
         case "admin":
           router.push("/admin-dashboard");
           break;
@@ -85,12 +84,5 @@ export default function AuthRedirectClientComponent() {
     checkUserAndRedirect();
   }, [isLoaded, user, router, convexUser, createUser]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Redirecting...</p>
-      </div>
-    </div>
-  );
+  return <Loading />;
 }

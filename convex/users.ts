@@ -11,6 +11,30 @@ export const getUser = query({
   },
 });
 
+export const createUser = mutation({
+  args: {
+    email: v.string(),
+    role: v.union(
+      v.literal("admin"),
+      v.literal("clinic"),
+      v.literal("patient")
+    ),
+    status: v.union(v.literal("approved"), v.literal("pending")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    return await ctx.db.insert("users", {
+      userId: identity.subject,
+      email: args.email,
+      role: args.role,
+      status: args.role === "clinic" ? "pending" : "approved",
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const getRejectedClinics = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -56,30 +80,6 @@ export const getApprovedClinics = query({
         q.eq("role", "clinic").eq("status", "approved")
       )
       .collect();
-  },
-});
-
-export const createUser = mutation({
-  args: {
-    email: v.string(),
-    role: v.union(
-      v.literal("admin"),
-      v.literal("clinic"),
-      v.literal("patient")
-    ),
-    status: v.union(v.literal("approved"), v.literal("pending")),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    return await ctx.db.insert("users", {
-      userId: identity.subject,
-      email: args.email,
-      role: args.role,
-      status: args.role === "clinic" ? "pending" : "approved",
-      createdAt: Date.now(),
-    });
   },
 });
 

@@ -1,5 +1,5 @@
-import AuthRedirectClientComponent from "@/app/_components/auth-redirect/AuthRedirectClientComponent";
+import AuthRedirectClientComponent from "./_components/AuthRedirectClientComponent";
 
-export default function AuthRedirectPage() {
+export default function page() {
   return <AuthRedirectClientComponent />;
 }

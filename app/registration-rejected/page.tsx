@@ -37,7 +37,13 @@ export default function RegistrationRejectedPage() {
               decision, please contact our support team.
             </p>
             <p className="text-sm font-semibold text-gray-800">
-              Email: support@clinicfinder.com
+              Email:{" "}
+              <a
+                href="mailto:djyknn@gmail.com"
+                className="text-blue-600 hover:underline"
+              >
+                support@clinicfinder.com
+              </a>
             </p>
           </div>
         </div>

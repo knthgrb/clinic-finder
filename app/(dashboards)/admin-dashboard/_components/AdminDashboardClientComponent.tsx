@@ -2,25 +2,20 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useRouter } from "next/navigation";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import Loading from "@/app/loading";
 
-export default function AdminDashboardPage() {
+export default function AdminDashboardClientComponent() {
   const pendingClinics = useQuery(api.users.getPendingClinics);
   const rejectedClinics = useQuery(api.users.getRejectedClinics);
   const approvedClinics = useQuery(api.users.getApprovedClinics);
   const updateStatus = useMutation(api.users.updateClinicStatus);
   const deleteClinic = useMutation(api.users.deleteClinic);
-  const router = useRouter();
   const { user } = useUser();
 
   if (!pendingClinics || !rejectedClinics || !approvedClinics) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   const handleStatusUpdate = async (
@@ -29,6 +24,7 @@ export default function AdminDashboardPage() {
   ) => {
     try {
       await updateStatus({ userId, status });
+      // TODO: Send email to clinic
     } catch (error) {
       console.error("Error updating clinic status:", error);
     }

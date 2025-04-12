@@ -1,4 +1,4 @@
-import OnboardingClientComponent from "@/app/_components/onboarding/OnboardingClientComponent";
+import OnboardingClientComponent from "./_components/OnboardingClientComponent";
 
 export default function OnboardingPage() {
   return <OnboardingClientComponent />;
