@@ -144,7 +144,7 @@ export default function ClinicSearch() {
                   <Button
                     onClick={() => {
                       // Navigate to appointments tab with this clinic selected
-                      window.location.href = `?tab=appointments&clinicId=${clinic.clinicId}`;
+                      window.location.href = `/patient/appointments?clinicId=${clinic.clinicId}`;
                     }}
                     className="text-sm"
                     disabled={!clinic.isAvailable}
