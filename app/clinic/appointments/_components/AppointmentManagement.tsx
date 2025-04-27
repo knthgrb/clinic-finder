@@ -9,6 +9,7 @@ import Loading from "@/app/loading";
 import { Id } from "@/convex/_generated/dataModel";
 import { useToast } from "@/hooks/use-toast";
 import TimeSlotManagement from "@/app/clinic/timeslot-management/_components/TimeSlotManagement";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -31,10 +32,27 @@ type Appointment = {
 };
 
 export default function AppointmentManagement() {
-  const [activeTab, setActiveTab] = useState("pending");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams.get("tab");
+
+  const [activeTab, setActiveTab] = useState(
+    tabParam &&
+      ["pending", "approved", "declined", "completed", "timeSlots"].includes(
+        tabParam
+      )
+      ? tabParam
+      : "pending"
+  );
   const [notesInput, setNotesInput] = useState<{ [key: string]: string }>({});
   const { toast } = useToast();
   const [isMobile, setIsMobile] = useState(false);
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    router.push(`?tab=${value}`, { scroll: false });
+  };
 
   // Check if screen is mobile on component mount and when window resizes
   useEffect(() => {
@@ -264,7 +282,7 @@ export default function AppointmentManagement() {
 
       {isMobile ? (
         <div className="mb-6">
-          <Select value={activeTab} onValueChange={setActiveTab}>
+          <Select value={activeTab} onValueChange={handleTabChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select tab" />
             </SelectTrigger>
@@ -294,7 +312,11 @@ export default function AppointmentManagement() {
           </Select>
         </div>
       ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
           <TabsList className="grid grid-cols-5 mb-6">
             <TabsTrigger value="pending" className="relative">
               Pending
