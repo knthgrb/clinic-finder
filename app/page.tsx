@@ -117,7 +117,7 @@ export default function HomePage() {
   const handleClinicSelection = (clinic: ClinicProfile) => {
     if (user) {
       // If user is logged in (but not being redirected yet)
-      router.push(`/patient?tab=appointments&clinicId=${clinic.clinicId}`);
+      router.push(`/patient/appointments?clinicId=${clinic.clinicId}`);
     } else {
       // If not logged in, redirect to sign in
       router.push("/signin");

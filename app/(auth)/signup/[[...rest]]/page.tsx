@@ -19,7 +19,7 @@ export default function SignUpPage() {
             },
           }}
           signInUrl="/signin"
-          afterSignUpUrl="/signin"
+          afterSignUpUrl="/onboarding"
         />
       </div>
     </div>
