@@ -152,9 +152,9 @@ export default function OnboardingClientComponent() {
         role === "clinic"
           ? "/pending-approval"
           : role === "patient"
-            ? "/patient-dashboard"
+            ? "/patient"
             : role === "admin"
-              ? "/admin-dashboard"
+              ? "/admin"
               : "/signin"
       );
     } catch (error: any) {

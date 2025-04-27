@@ -71,6 +71,17 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_clinicId_and_status", ["clinicId", "status"]),
 
+  timeSlots: defineTable({
+    clinicId: v.string(),
+    date: v.number(), // Start of the day (midnight)
+    slots: v.array(v.number()), // Array of timestamps for available slots
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_clinicId", ["clinicId"])
+    .index("by_date", ["date"])
+    .index("by_clinicId_and_date", ["clinicId", "date"]),
+
   queueStatus: defineTable({
     clinicId: v.string(),
     estimatedWaitTime: v.number(), // in minutes
