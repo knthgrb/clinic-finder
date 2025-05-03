@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
@@ -35,6 +35,7 @@ export default function DoctorManagement() {
   const addDoctor = useMutation(api.clinics.addDoctor);
   const updateDoctor = useMutation(api.clinics.updateDoctor);
   const deleteDoctor = useMutation(api.clinics.deleteDoctor);
+  const uploadDoctorPhoto = useAction(api.upload.uploadDoctorPhoto);
 
   const [showForm, setShowForm] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
@@ -50,6 +51,7 @@ export default function DoctorManagement() {
     null
   );
   const { toast } = useToast();
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (editingDoctor) {
@@ -72,6 +74,7 @@ export default function DoctorManagement() {
       photo: "",
     });
     setNewSpecialization("");
+    setPhotoFile(null);
   };
 
   const handleChange = (
@@ -104,11 +107,64 @@ export default function DoctorManagement() {
     }));
   };
 
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const arrayBuffer = await file.arrayBuffer();
+      const photoUrl =
+        (await uploadDoctorPhoto({
+          contentType: file.type,
+          file: arrayBuffer,
+        })) ?? "";
+      setFormData((prev) => ({
+        ...prev,
+        photo: photoUrl,
+      }));
+
+      if (editingDoctor && photoUrl) {
+        try {
+          await updateDoctor({
+            doctorId: editingDoctor._id,
+            name: formData.name,
+            specializations: formData.specializations,
+            description: formData.description || undefined,
+            photo: photoUrl,
+          });
+          toast({
+            variant: "default",
+            title: "Photo updated",
+            description: "Doctor photo updated successfully!",
+          });
+        } catch (error) {
+          console.error("Error updating doctor photo:", error);
+          toast({
+            variant: "destructive",
+            title: "Photo update failed",
+            description: "Failed to update doctor photo",
+          });
+        }
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
+      let photoUrl = formData.photo;
+
+      // If adding a new doctor and a photo file is selected but not yet uploaded
+      if (!editingDoctor && photoFile && !formData.photo) {
+        const arrayBuffer = await photoFile.arrayBuffer();
+        photoUrl =
+          (await uploadDoctorPhoto({
+            contentType: photoFile.type,
+            file: arrayBuffer,
+          })) ?? "";
+      }
+
       if (editingDoctor) {
         // Update existing doctor
         await updateDoctor({
@@ -116,7 +172,7 @@ export default function DoctorManagement() {
           name: formData.name,
           specializations: formData.specializations,
           description: formData.description || undefined,
-          photo: formData.photo || undefined,
+          photo: photoUrl || undefined,
         });
         toast({
           variant: "default",
@@ -129,7 +185,7 @@ export default function DoctorManagement() {
           name: formData.name,
           specializations: formData.specializations,
           description: formData.description || undefined,
-          photo: formData.photo || undefined,
+          photo: photoUrl || undefined,
         });
         toast({
           variant: "default",
@@ -278,16 +334,21 @@ export default function DoctorManagement() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Photo URL
+                Photo
               </label>
               <input
-                type="text"
-                name="photo"
-                value={formData.photo}
-                onChange={handleChange}
-                placeholder="https://example.com/doctor-photo.jpg"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
               />
+              {formData.photo && (
+                <img
+                  src={formData.photo}
+                  alt="Preview"
+                  className="h-24 mt-2 rounded"
+                />
+              )}
             </div>
 
             <div className="flex justify-end">

@@ -18,6 +18,7 @@ import type * as clinics from "../clinics.js";
 import type * as messages from "../messages.js";
 import type * as queue from "../queue.js";
 import type * as timeSlots from "../timeSlots.js";
+import type * as upload from "../upload.js";
 import type * as users from "../users.js";
 
 /**
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   queue: typeof queue;
   timeSlots: typeof timeSlots;
+  upload: typeof upload;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
